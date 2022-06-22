@@ -50,23 +50,23 @@ func main() {
 	socketmodeHandler.Handle(socketmode.EventTypeConnectionError, middlewareConnectionError)
 	socketmodeHandler.Handle(socketmode.EventTypeConnected, middlewareConnected)
 
-	//\\ EventTypeEventsAPI //\\
-	// Handle all EventsAPI
-	socketmodeHandler.Handle(socketmode.EventTypeEventsAPI, middlewareEventsAPI)
+	// //\\ EventTypeEventsAPI //\\
+	// // Handle all EventsAPI
+	// socketmodeHandler.Handle(socketmode.EventTypeEventsAPI, middlewareEventsAPI)
 
-	// Handle a specific event from EventsAPI
-	socketmodeHandler.HandleEvents(slackevents.AppMention, middlewareAppMentionEvent)
+	// // Handle a specific event from EventsAPI
+	// socketmodeHandler.HandleEvents(slackevents.AppMention, middlewareAppMentionEvent)
 
-	//\\ EventTypeInteractive //\\
-	// Handle all Interactive Events
-	socketmodeHandler.Handle(socketmode.EventTypeInteractive, middlewareInteractive)
+	// //\\ EventTypeInteractive //\\
+	// // Handle all Interactive Events
+	// socketmodeHandler.Handle(socketmode.EventTypeInteractive, middlewareInteractive)
 
-	// Handle a specific Interaction
-	socketmodeHandler.HandleInteraction(slack.InteractionTypeBlockActions, middlewareInteractionTypeBlockActions)
+	// // Handle a specific Interaction
+	// socketmodeHandler.HandleInteraction(slack.InteractionTypeBlockActions, middlewareInteractionTypeBlockActions)
 
-	// Handle all SlashCommand
-	socketmodeHandler.Handle(socketmode.EventTypeSlashCommand, middlewareSlashCommand)
-	socketmodeHandler.HandleSlashCommand("/rocket", middlewareSlashCommand)
+	// // Handle all SlashCommand
+	// socketmodeHandler.Handle(socketmode.EventTypeSlashCommand, middlewareSlashCommand)
+	socketmodeHandler.HandleSlashCommand("/pocketbook", middlewareSlashCommand)
 
 	// socketmodeHandler.HandleDefault(middlewareDefault)
 
