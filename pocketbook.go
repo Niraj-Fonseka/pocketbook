@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -49,23 +50,8 @@ func main() {
 	socketmodeHandler.Handle(socketmode.EventTypeConnecting, middlewareConnecting)
 	socketmodeHandler.Handle(socketmode.EventTypeConnectionError, middlewareConnectionError)
 	socketmodeHandler.Handle(socketmode.EventTypeConnected, middlewareConnected)
+	socketmodeHandler.Handle(socketmode.EventTypeInteractive, middlewareInteractive)
 
-	// //\\ EventTypeEventsAPI //\\
-	// // Handle all EventsAPI
-	// socketmodeHandler.Handle(socketmode.EventTypeEventsAPI, middlewareEventsAPI)
-
-	// // Handle a specific event from EventsAPI
-	// socketmodeHandler.HandleEvents(slackevents.AppMention, middlewareAppMentionEvent)
-
-	// //\\ EventTypeInteractive //\\
-	// // Handle all Interactive Events
-	// socketmodeHandler.Handle(socketmode.EventTypeInteractive, middlewareInteractive)
-
-	// // Handle a specific Interaction
-	// socketmodeHandler.HandleInteraction(slack.InteractionTypeBlockActions, middlewareInteractionTypeBlockActions)
-
-	// // Handle all SlashCommand
-	// socketmodeHandler.Handle(socketmode.EventTypeSlashCommand, middlewareSlashCommand)
 	socketmodeHandler.HandleSlashCommand("/pocketbook", middlewareSlashCommand)
 
 	// socketmodeHandler.HandleDefault(middlewareDefault)
@@ -153,6 +139,14 @@ func middlewareInteractive(evt *socketmode.Event, client *socketmode.Client) {
 	case slack.InteractionTypeBlockActions:
 		// See https://api.slack.com/apis/connections/socket-implement#button
 		client.Debugf("button clicked!")
+		fmt.Println("------------------------ button clicked !!")
+		b, err := json.Marshal(evt.Data)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println(string(b))
 	case slack.InteractionTypeShortcut:
 	case slack.InteractionTypeViewSubmission:
 		// See https://api.slack.com/apis/connections/socket-implement#modal
@@ -181,8 +175,8 @@ func middlewareSlashCommand(evt *socketmode.Event, client *socketmode.Client) {
 		"blocks": []slack.Block{
 			slack.NewSectionBlock(
 				&slack.TextBlockObject{
-					Type: slack.MarkdownType,
-					Text: "foo",
+					Type: "mrkdwn",
+					Text: "http://www.google.com",
 				},
 				nil,
 				slack.NewAccessory(
