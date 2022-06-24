@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 
@@ -12,6 +14,11 @@ import (
 
 	"github.com/slack-go/slack"
 )
+
+type SlackResponse struct {
+	ResponseType string `json:"response_type"`
+	Text         string `json:"text,omitempty"`
+}
 
 func main() {
 	appToken := os.Getenv("SLACK_APP_TOKEN")
@@ -146,7 +153,36 @@ func middlewareInteractive(evt *socketmode.Event, client *socketmode.Client) {
 			log.Fatal(err)
 		}
 
-		fmt.Println(string(b))
+		data := make(map[string]interface{})
+
+		err = json.Unmarshal(b, &data)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		responseURL := data["response_url"].(string)
+		dataToSend := data["actions"].([]interface{})[0].(map[string]interface{})["value"].(string)
+
+		var slackResponse SlackResponse
+
+		slackResponse.ResponseType = "in_channel"
+		slackResponse.Text = dataToSend
+
+		slackBytes, err := json.Marshal(&slackResponse)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		res, err := http.Post(responseURL, "application/json", bytes.NewBuffer([]byte(slackBytes)))
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println(res)
+		if res.StatusCode != 200 {
+			log.Fatal("Something went wrong status code : ", res.StatusCode)
+		}
 	case slack.InteractionTypeShortcut:
 	case slack.InteractionTypeViewSubmission:
 		// See https://api.slack.com/apis/connections/socket-implement#modal
@@ -182,7 +218,7 @@ func middlewareSlashCommand(evt *socketmode.Event, client *socketmode.Client) {
 				slack.NewAccessory(
 					slack.NewButtonBlockElement(
 						"",
-						"somevalue",
+						"http://www.google.com",
 						&slack.TextBlockObject{
 							Type: slack.PlainTextType,
 							Text: "bar",
