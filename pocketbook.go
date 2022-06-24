@@ -165,7 +165,9 @@ func middlewareInteractive(evt *socketmode.Event, client *socketmode.Client) {
 
 		var slackResponse SlackResponse
 
-		slackResponse.ResponseType = "in_channel"
+		//https://api.slack.com/interactivity/slash-commands#responding_to_commands
+
+		slackResponse.ResponseType = "replace_original"
 		slackResponse.Text = dataToSend
 
 		slackBytes, err := json.Marshal(&slackResponse)
@@ -173,7 +175,7 @@ func middlewareInteractive(evt *socketmode.Event, client *socketmode.Client) {
 			log.Fatal(err)
 		}
 
-		res, err := http.Post(responseURL, "application/json", bytes.NewBuffer([]byte(slackBytes)))
+		res, err := http.Post(responseURL, "application/json", bytes.NewBuffer(slackBytes))
 
 		if err != nil {
 			log.Fatal(err)
