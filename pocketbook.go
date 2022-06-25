@@ -16,8 +16,9 @@ import (
 )
 
 type SlackResponse struct {
-	ResponseType string `json:"response_type"`
-	Text         string `json:"text,omitempty"`
+	ResponseType   string `json:"response_type"`
+	Text           string `json:"text,omitempty"`
+	DeleteOriginal bool   `json:"delete_original"`
 }
 
 func main() {
@@ -166,10 +167,9 @@ func middlewareInteractive(evt *socketmode.Event, client *socketmode.Client) {
 		var slackResponse SlackResponse
 
 		//https://api.slack.com/interactivity/slash-commands#responding_to_commands
-
-		slackResponse.ResponseType = "replace_original"
+		slackResponse.ResponseType = "in_channel"
 		slackResponse.Text = dataToSend
-
+		slackResponse.DeleteOriginal = true
 		slackBytes, err := json.Marshal(&slackResponse)
 		if err != nil {
 			log.Fatal(err)
