@@ -2,15 +2,19 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"pocketbook/store"
 	"strings"
 
+	firebase "firebase.google.com/go"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"
+	"google.golang.org/api/option"
 
 	"github.com/slack-go/slack"
 )
@@ -21,7 +25,20 @@ type SlackResponse struct {
 	DeleteOriginal bool   `json:"delete_original"`
 }
 
+var FS *store.FirestoreService
+
 func main() {
+
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("./pocketbook-firestore.json")
+
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	FS = store.NewFirestoreService(app, ctx)
+
 	appToken := os.Getenv("SLACK_APP_TOKEN")
 	if appToken == "" {
 		panic("SLACK_APP_TOKEN must be set.\n")
@@ -148,6 +165,7 @@ func middlewareInteractive(evt *socketmode.Event, client *socketmode.Client) {
 		// See https://api.slack.com/apis/connections/socket-implement#button
 		client.Debugf("button clicked!")
 		fmt.Println("------------------------ button clicked !!")
+
 		b, err := json.Marshal(evt.Data)
 
 		if err != nil {
@@ -163,13 +181,31 @@ func middlewareInteractive(evt *socketmode.Event, client *socketmode.Client) {
 
 		responseURL := data["response_url"].(string)
 		dataToSend := data["actions"].([]interface{})[0].(map[string]interface{})["value"].(string)
+		userID := data["user"].(map[string]interface{})["id"]
+		teamID := data["team"].(map[string]interface{})["id"]
 
+		docID := fmt.Sprintf("%s-%s", userID, teamID)
+
+		err = FS.AddUserRecord(docID, "record data")
+
+		if err != nil {
+			log.Println(err)
+		}
+
+		doc, err := FS.GetUserRecord(docID)
+
+		if err != nil {
+			log.Println(err)
+		}
+
+		fmt.Println("Doc :-> ", doc.Data()["data"])
 		var slackResponse SlackResponse
 
 		//https://api.slack.com/interactivity/slash-commands#responding_to_commands
 		slackResponse.ResponseType = "in_channel"
 		slackResponse.Text = dataToSend
 		slackResponse.DeleteOriginal = true
+
 		slackBytes, err := json.Marshal(&slackResponse)
 		if err != nil {
 			log.Fatal(err)
@@ -232,6 +268,13 @@ func middlewareSlashCommand(evt *socketmode.Event, client *socketmode.Client) {
 	client.Ack(*evt.Request, payload)
 }
 
-func middlewareDefault(evt *socketmode.Event, client *socketmode.Client) {
-	// fmt.Fprintf(os.Stderr, "Unexpected event type received: %s\n", evt.Type)
-}
+// func buildPayload(records []UserRecord, event string) map[string]interface{} {
+
+// 	for _, r := range records {
+
+// 	}
+// }
+
+// func middlewareDefault(evt *socketmode.Event, client *socketmode.Client) {
+// 	// fmt.Fprintf(os.Stderr, "Unexpected event type received: %s\n", evt.Type)
+// }
