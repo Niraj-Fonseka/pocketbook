@@ -59,15 +59,15 @@ func main() {
 
 	api := slack.New(
 		botToken,
-		slack.OptionDebug(true),
-		slack.OptionLog(log.New(os.Stdout, "api: ", log.Lshortfile|log.LstdFlags)),
+		// slack.OptionDebug(true),
+		// slack.OptionLog(log.New(os.Stdout, "api: ", log.Lshortfile|log.LstdFlags)),
 		slack.OptionAppLevelToken(appToken),
 	)
 
 	client := socketmode.New(
 		api,
-		socketmode.OptionDebug(true),
-		socketmode.OptionLog(log.New(os.Stdout, "socketmode: ", log.Lshortfile|log.LstdFlags)),
+		// socketmode.OptionDebug(true),
+		// socketmode.OptionLog(log.New(os.Stdout, "socketmode: ", log.Lshortfile|log.LstdFlags)),
 	)
 
 	socketmodeHandler := socketmode.NewSocketmodeHandler(client)
@@ -156,8 +156,6 @@ func middlewareInteractive(evt *socketmode.Event, client *socketmode.Client) {
 		return
 	}
 
-	fmt.Printf("Interaction received: %+v\n", callback)
-
 	var payload interface{}
 
 	switch callback.Type {
@@ -166,7 +164,14 @@ func middlewareInteractive(evt *socketmode.Event, client *socketmode.Client) {
 		client.Debugf("button clicked!")
 		fmt.Println("------------------------ button clicked !!")
 
-		b, ok := evt.Data.(slack.SlashCommand)
+		bts, err := json.Marshal(evt.Data)
+
+		if err != nil {
+			log.Println("unable to convert to a json type")
+			return
+		}
+
+		b, ok := evt.Data.(slack.InteractionCallback)
 
 		if !ok {
 			log.Println("unable to convert to a SlackCommand type")
@@ -174,39 +179,57 @@ func middlewareInteractive(evt *socketmode.Event, client *socketmode.Client) {
 		}
 
 		fmt.Println("event data --------------------------------")
-		fmt.Println(string(b))
 		data := make(map[string]interface{})
 
-		err := json.Unmarshal(b, &data)
+		err = json.Unmarshal(bts, &data)
 		if err != nil {
 			log.Fatal(err)
 		}
 
+		fmt.Println("call backs ")
+
 		responseURL := b.ResponseURL
-		dataToSend := data["actions"].([]interface{})[0].(map[string]interface{})["value"].(string)
-		userID := b.UserID
-		teamID := b.TeamID
+		// dataToSend := data["actions"].([]interface{})[0].(map[string]interface{})["value"].(string)
+		dataToSend := b.ActionCallback.BlockActions[0].Value
+		action := b.ActionCallback.BlockActions[0].Text.Text //name of the button
 
-		docID := fmt.Sprintf("%s-%s", userID, teamID)
+		if action == "delete" {
+			//trigger delete
+			client.Ack(*evt.Request, payload)
 
-		err = FS.AddUserRecord(docID, "record data")
+			err := FS.DeleteRecord(fmt.Sprintf("%s-%s", b.User.ID, b.Team.ID), dataToSend)
+			if err != nil {
+				log.Println(err)
+			}
 
-		if err != nil {
-			log.Println(err)
+			var slackResponse SlackResponse
+
+			slackResponse.ResponseType = "in_channel"
+			slackResponse.DeleteOriginal = true
+
+			slackBytes, err := json.Marshal(&slackResponse)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			res, err := http.Post(responseURL, "application/json", bytes.NewBuffer(slackBytes))
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			if res.StatusCode != 200 {
+				log.Fatal("Something went wrong status code : ", res.StatusCode)
+			}
+			return
 		}
 
-		doc, err := FS.GetUserRecord(docID)
-
-		if err != nil {
-			log.Println(err)
-		}
-
-		fmt.Println("Doc :-> ", doc.Data()["data"])
 		var slackResponse SlackResponse
 
+		fmt.Println(b.User)
 		//https://api.slack.com/interactivity/slash-commands#responding_to_commands
 		slackResponse.ResponseType = "in_channel"
-		slackResponse.Text = dataToSend
+		slackResponse.Text = fmt.Sprintf("post from @%s - %s", b.User.Name, dataToSend)
 		slackResponse.DeleteOriginal = true
 
 		slackBytes, err := json.Marshal(&slackResponse)
@@ -220,7 +243,6 @@ func middlewareInteractive(evt *socketmode.Event, client *socketmode.Client) {
 			log.Fatal(err)
 		}
 
-		fmt.Println(res)
 		if res.StatusCode != 200 {
 			log.Fatal("Something went wrong status code : ", res.StatusCode)
 		}
@@ -249,36 +271,63 @@ func middlewareSlashCommand(evt *socketmode.Event, client *socketmode.Client) {
 	client.Debugf("Slash command received: %+v", cmd)
 
 	fmt.Println("this is the text -----", cmd.Text)
-	payload := map[string]interface{}{
-		"blocks": []slack.Block{
-			slack.NewSectionBlock(
-				&slack.TextBlockObject{
-					Type: "mrkdwn",
-					Text: "http://www.google.com",
-				},
-				nil,
-				slack.NewAccessory(
-					slack.NewButtonBlockElement(
-						"",
-						"http://www.google.com",
-						&slack.TextBlockObject{
-							Type: slack.PlainTextType,
-							Text: "bar",
-						},
-					),
-				),
-			),
-		}}
-	client.Ack(*evt.Request, payload)
+
+	if strings.TrimSpace(cmd.Text) == "remove" {
+		doc, err := FS.GetUserRecord(fmt.Sprintf("%s-%s", cmd.UserID, cmd.TeamID))
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		mapDoc := doc.Data()["data"].([]interface{})
+		client.Ack(*evt.Request, buildPayload(mapDoc, "delete"))
+	}
+
+	if len(strings.TrimSpace(cmd.Text)) > 0 {
+		//add something
+		client.Ack(*evt.Request)
+
+		err := FS.AddUserRecord(fmt.Sprintf("%s-%s", cmd.UserID, cmd.TeamID), strings.TrimSpace(cmd.Text))
+
+		log.Println(err)
+	} else {
+
+		doc, err := FS.GetUserRecord(fmt.Sprintf("%s-%s", cmd.UserID, cmd.TeamID))
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		mapDoc := doc.Data()["data"].([]interface{})
+		client.Ack(*evt.Request, buildPayload(mapDoc, "send"))
+	}
 }
 
-// func buildPayload(records []UserRecord, event string) map[string]interface{} {
+func buildPayload(records []interface{}, event string) map[string]interface{} {
 
-// 	for _, r := range records {
+	var blocks []slack.Block
 
-// 	}
-// }
+	for _, r := range records {
+		blk := slack.NewSectionBlock(
+			&slack.TextBlockObject{
+				Type: "mrkdwn",
+				Text: r.(string),
+			},
+			nil,
+			slack.NewAccessory(
+				slack.NewButtonBlockElement(
+					"",
+					r.(string),
+					&slack.TextBlockObject{
+						Type: slack.PlainTextType,
+						Text: event,
+					},
+				),
+			),
+		)
 
-// func middlewareDefault(evt *socketmode.Event, client *socketmode.Client) {
-// 	// fmt.Fprintf(os.Stderr, "Unexpected event type received: %s\n", evt.Type)
-// }
+		blocks = append(blocks, blk)
+	}
+
+	return map[string]interface{}{"blocks": blocks}
+}
