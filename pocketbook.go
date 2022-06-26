@@ -166,23 +166,26 @@ func middlewareInteractive(evt *socketmode.Event, client *socketmode.Client) {
 		client.Debugf("button clicked!")
 		fmt.Println("------------------------ button clicked !!")
 
-		b, err := json.Marshal(evt.Data)
+		b, ok := evt.Data.(slack.SlashCommand)
 
-		if err != nil {
-			log.Fatal(err)
+		if !ok {
+			log.Println("unable to convert to a SlackCommand type")
+			return
 		}
 
+		fmt.Println("event data --------------------------------")
+		fmt.Println(string(b))
 		data := make(map[string]interface{})
 
-		err = json.Unmarshal(b, &data)
+		err := json.Unmarshal(b, &data)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		responseURL := data["response_url"].(string)
+		responseURL := b.ResponseURL
 		dataToSend := data["actions"].([]interface{})[0].(map[string]interface{})["value"].(string)
-		userID := data["user"].(map[string]interface{})["id"]
-		teamID := data["team"].(map[string]interface{})["id"]
+		userID := b.UserID
+		teamID := b.TeamID
 
 		docID := fmt.Sprintf("%s-%s", userID, teamID)
 
@@ -245,6 +248,7 @@ func middlewareSlashCommand(evt *socketmode.Event, client *socketmode.Client) {
 
 	client.Debugf("Slash command received: %+v", cmd)
 
+	fmt.Println("this is the text -----", cmd.Text)
 	payload := map[string]interface{}{
 		"blocks": []slack.Block{
 			slack.NewSectionBlock(
