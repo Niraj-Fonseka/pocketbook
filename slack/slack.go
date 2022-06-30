@@ -58,7 +58,7 @@ func (s *Slack) EventHandler(event *socketmode.Event) {
 func (s *Slack) actionHandler(action string, event *socketmode.Event) {
 	switch action {
 	case "delete":
-
+		s.deleteActionTrigger()
 	case "send":
 
 	}
@@ -69,7 +69,33 @@ func (s *Slack) sendActionTrigger(event *socketmode.Event) {
 }
 
 func (s *Slack) deleteActionTrigger(event *socketmode.Event) {
+	s.Client.Ack(*event.Request, payload)
 
+	err := s.Store.Delete(fmt.Sprintf("%s-%s", b.User.ID, b.Team.ID), dataToSend)
+	if err != nil {
+		log.Println(err)
+	}
+
+	var slackResponse SlackResponse
+
+	slackResponse.ResponseType = "in_channel"
+	slackResponse.DeleteOriginal = true
+
+	slackBytes, err := json.Marshal(&slackResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Post(responseURL, "application/json", bytes.NewBuffer(slackBytes))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if res.StatusCode != 200 {
+		log.Fatal("Something went wrong status code : ", res.StatusCode)
+	}
+	return
 }
 
 func (s *Slack) ButtonClickHandler(event *socketmode.Event) {
@@ -101,36 +127,36 @@ func (s *Slack) ButtonClickHandler(event *socketmode.Event) {
 	dataToSend := b.ActionCallback.BlockActions[0].Value
 	action := b.ActionCallback.BlockActions[0].Text.Text //name of the button
 
-	if action == "delete" {
-		//trigger delete
-		client.Ack(*evt.Request, payload)
+	// if action == "delete" {
+	// 	//trigger delete
+	// 	s.Client.Ack(*event.Request, payload)
 
-		err := FS.DeleteRecord(fmt.Sprintf("%s-%s", b.User.ID, b.Team.ID), dataToSend)
-		if err != nil {
-			log.Println(err)
-		}
+	// 	err := s.Store.Delete(fmt.Sprintf("%s-%s", b.User.ID, b.Team.ID), dataToSend)
+	// 	if err != nil {
+	// 		log.Println(err)
+	// 	}
 
-		var slackResponse SlackResponse
+	// 	var slackResponse SlackResponse
 
-		slackResponse.ResponseType = "in_channel"
-		slackResponse.DeleteOriginal = true
+	// 	slackResponse.ResponseType = "in_channel"
+	// 	slackResponse.DeleteOriginal = true
 
-		slackBytes, err := json.Marshal(&slackResponse)
-		if err != nil {
-			log.Fatal(err)
-		}
+	// 	slackBytes, err := json.Marshal(&slackResponse)
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
 
-		res, err := http.Post(responseURL, "application/json", bytes.NewBuffer(slackBytes))
+	// 	res, err := http.Post(responseURL, "application/json", bytes.NewBuffer(slackBytes))
 
-		if err != nil {
-			log.Fatal(err)
-		}
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
 
-		if res.StatusCode != 200 {
-			log.Fatal("Something went wrong status code : ", res.StatusCode)
-		}
-		return
-	}
+	// 	if res.StatusCode != 200 {
+	// 		log.Fatal("Something went wrong status code : ", res.StatusCode)
+	// 	}
+	// 	return
+	// }
 
 	var slackResponse SlackResponse
 
