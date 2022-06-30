@@ -17,7 +17,9 @@ type SlackInterface interface {
 }
 
 type Slack struct {
-	Store store.StoreInterface
+	Store  store.StoreInterface
+	API    *slack.Client
+	Client *socketmode.Client
 }
 
 type SlackResponse struct {
@@ -26,7 +28,7 @@ type SlackResponse struct {
 	DeleteOriginal bool   `json:"delete_original"`
 }
 
-func NewSlack(driver string) *Slack {
+func NewSlack(driver string, api *slack.Client, client *socketmode.Client) *Slack {
 
 	s := store.NewStore("firestore")
 	return &Slack{
