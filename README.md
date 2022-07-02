@@ -24,22 +24,22 @@ GOOGLE_APPLICATION_CREDENTIALS - service account to gain access to firestore
 - List all notes
     - command - `/pocketbook`
     - response 
-        ![response_image](docs/listall.png)
+        - ![response_image](docs/listall.png)
 - Send a note 
     - command - click on the `send` button to send a link to the channel
-    - response
-        ![send_image](docs/aftersend.png)
+    - response 
+        - ![send_image](docs/aftersend.png)
 - Delete a note 
     - command - `/pocketbook delete`
     - response 
         - click on the delete button
-            ![send_image](docs/delete.png)
+        - ![send_image](docs/delete.png)
 
 
 ## How to run 
 
 - without docker
-    - install Go
+    - install [Go](https://go.dev/doc/install)
     - make sure you have all the requirements fulfilled 
     - `make run` 
 
