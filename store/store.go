@@ -1,12 +1,15 @@
 package store
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type StoreInterface interface {
-	Get()
-	Create()
-	Delete()
-	Update()
+	Get(key string) (interface{}, error)
+	Create(key string, value string) error
+	Delete(key string) error
+	Update(key string) error
 }
 
 type Store struct {
@@ -17,18 +20,20 @@ func NewStore(driver string) *Store {
 	return &Store{}
 }
 
-func (s *Store) Get() {
+func (s *Store) Get(key string) (interface{}, error) {
+	var a interface{}
 
+	return a, errors.New("new error")
 }
 
-func (s *Store) Create() {
-
+func (s *Store) Create(key string, value string) error {
+	return errors.New("new error")
 }
 
-func (s *Store) Delete() {
-
+func (s *Store) Delete(key string) error {
+	return errors.New("delete error")
 }
 
-func (s *Store) Update() {
-
+func (s *Store) Update(key string) error {
+	return errors.New("update error")
 }

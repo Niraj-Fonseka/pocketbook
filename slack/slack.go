@@ -67,6 +67,58 @@ func (s *Slack) EventHandler(event *socketmode.Event) {
 
 }
 
+func (s *Slack) getSlashCommandHandler(event *socketmode.Event) {
+	eventData, ok := event.Data.(slack.SlashCommand)
+	if !ok {
+		fmt.Printf("Ignored %+v\n", event)
+		return
+	}
+
+	doc, err := s.Store.Get(fmt.Sprintf("%s-%s", eventData.UserID, eventData.TeamID))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	mapDoc := doc.Data()["data"].([]interface{})
+	s.Client.Ack(*event.Request, s.buildPayload(mapDoc, "send"))
+}
+
+func (s *Slack) createSlashCommandHandler(event *socketmode.Event) {
+
+	eventData, ok := event.Data.(slack.SlashCommand)
+	if !ok {
+		fmt.Printf("Ignored %+v\n", event)
+		return
+	}
+
+	if len(strings.TrimSpace(eventData.Text)) > 0 {
+		//add something
+		s.Client.Ack(*event.Request)
+
+		err := s.Store.Create(fmt.Sprintf("%s-%s", eventData.UserID, eventData.TeamID), strings.TrimSpace(eventData.Text))
+
+		log.Println(err)
+	}
+}
+
+func (s *Slack) deleteSlashCommandHandler(event *socketmode.Event) {
+	eventData, ok := event.Data.(slack.SlashCommand)
+	if !ok {
+		fmt.Printf("Ignored %+v\n", evt)
+		return
+	}
+
+	doc, err := s.Store.Get(fmt.Sprintf("%s-%s", eventData.UserID, eventData.TeamID))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	mapDoc := doc.Data()["data"].([]interface{})
+	s.Client.Ack(*event.Request, s.buildPayload(mapDoc, "delete"))
+
+}
 func (s *Slack) slashCommandHandler(evt *socketmode.Event, client *socketmode.Client) {
 	cmd, ok := evt.Data.(slack.SlashCommand)
 	if !ok {
@@ -74,39 +126,16 @@ func (s *Slack) slashCommandHandler(evt *socketmode.Event, client *socketmode.Cl
 		return
 	}
 
-	client.Debugf("Slash command received: %+v", cmd)
-
-	fmt.Println("this is the text -----", cmd.Text)
-
-	if strings.TrimSpace(cmd.Text) == "remove" {
-		doc, err := s.Store.Get(fmt.Sprintf("%s-%s", cmd.UserID, cmd.TeamID))
-		if err != nil {
-			log.Println(err)
-			return
-		}
-
-		mapDoc := doc.Data()["data"].([]interface{})
-		client.Ack(*evt.Request, s.buildPayload(mapDoc, "delete"))
+	if strings.TrimSpace(cmd.Text) == "delete" {
+		s.deleteSlashCommandHandler(evt)
 	}
 
 	if len(strings.TrimSpace(cmd.Text)) > 0 {
-		//add something
-		client.Ack(*evt.Request)
-
-		err := s.Store.Create(fmt.Sprintf("%s-%s", cmd.UserID, cmd.TeamID), strings.TrimSpace(cmd.Text))
-
-		log.Println(err)
+		s.createSlashCommandHandler(evt)
 	} else {
-
-		doc, err := s.Store.Get(fmt.Sprintf("%s-%s", cmd.UserID, cmd.TeamID))
-		if err != nil {
-			log.Println(err)
-			return
-		}
-
-		mapDoc := doc.Data()["data"].([]interface{})
-		client.Ack(*evt.Request, s.buildPayload(mapDoc, "send"))
+		s.getSlashCommandHandler(evt)
 	}
+
 }
 
 func (s *Slack) buildPayload(records []interface{}, event string) map[string]interface{} {
@@ -138,19 +167,20 @@ func (s *Slack) buildPayload(records []interface{}, event string) map[string]int
 	return map[string]interface{}{"blocks": blocks}
 }
 
-func (s *Slack) actionHandler(event *socketmode.Event, action string, payload string, responseURL string) {
-	switch action {
-	case "delete":
-		s.deleteActionTrigger(event.Data.(slack.InteractionCallback), payload, responseURL)
-	case "send":
-		s.sendActionTrigger(event.Data.(slack.InteractionCallback), payload, responseURL)
+func (s *Slack) eventHandler(event *socketmode.Event, action string, eventType string, payload string, responseURL string) {
+
+	switch eventType {
+	case "slash":
+		s.slashCommandHandler(event, s.Client)
+	case "button":
+		s.buttonClickHandler(event)
 	}
 
 	s.Client.Ack(*event.Request, payload)
 
 }
 
-func (s *Slack) sendActionTrigger(event slack.InteractionCallback, payload string, responseURL string) {
+func (s *Slack) sendButtonClickHandler(event slack.InteractionCallback, payload string, responseURL string) {
 	var slackResponse SlackResponse
 
 	//https://api.slack.com/interactivity/slash-commands#responding_to_commands
@@ -174,7 +204,7 @@ func (s *Slack) sendActionTrigger(event slack.InteractionCallback, payload strin
 	}
 }
 
-func (s *Slack) deleteActionTrigger(event slack.InteractionCallback, payload string, responseURL string) {
+func (s *Slack) deleteButtonClickHandler(event slack.InteractionCallback, payload string, responseURL string) {
 
 	err := s.Store.Delete(fmt.Sprintf("%s-%s", event.User.ID, event.Team.ID), dataToSend)
 	if err != nil {
@@ -226,9 +256,14 @@ func (s *Slack) buttonClickHandler(event *socketmode.Event) {
 	}
 
 	responseURL := b.ResponseURL
-	dataToSend := b.ActionCallback.BlockActions[0].Value
+	payload := b.ActionCallback.BlockActions[0].Value
 	action := b.ActionCallback.BlockActions[0].Text.Text //name of the button
 
-	s.actionHandler(event, action, dataToSend, responseURL)
+	switch action {
+	case "delete":
+		s.deleteButtonClickHandler(event.Data.(slack.InteractionCallback), payload, responseURL)
+	case "send":
+		s.sendButtonClickHandler(event.Data.(slack.InteractionCallback), payload, responseURL)
+	}
 
 }
