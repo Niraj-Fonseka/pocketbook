@@ -97,7 +97,7 @@ func (s *Slack) getSlashCommandHandler(event *socketmode.Event) error {
 		mapDoc := doc.Data()["data"].([]interface{})
 		s.client.Ack(*event.Request, s.buildPayload(mapDoc, "send"))
 	} else {
-		s.client.Ack(*event.Request, "you don't have any notes yet")
+		s.client.Ack(*event.Request, map[string]interface{}{"text": "you don't have any notes yet"})
 	}
 
 	return nil
@@ -136,9 +136,9 @@ func (s *Slack) deleteSlashCommandHandler(event *socketmode.Event) error {
 
 	if doc.Data()["data"] != nil {
 		mapDoc := doc.Data()["data"].([]interface{})
-		s.client.Ack(*event.Request, s.buildPayload(mapDoc, "send"))
+		s.client.Ack(*event.Request, s.buildPayload(mapDoc, "delete"))
 	} else {
-		s.client.Ack(*event.Request, map[string]interface{}{"text": "no data available"})
+		s.client.Ack(*event.Request, map[string]interface{}{"text": "you don't have any notes yet"})
 	}
 	return nil
 }

@@ -1,11 +1,11 @@
-FROM golang:1.11.0-stretch as builder
+FROM golang:1.17.5-stretch as builder
 
 COPY . /pocketbook
 WORKDIR /pocketbook
 
 ENV GO111MODULE=on
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o pocketbook 
+RUN CGO_ENABLED=0 GOOS=linux go build -o pocketbook-app 
 
 
 FROM alpine:latest
@@ -18,4 +18,4 @@ WORKDIR /root/
 
 COPY --from=builder /pocketbook .
 
-CMD ["./pocketbook"]
+CMD ["./pocketbook-app"]
