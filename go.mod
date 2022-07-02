@@ -3,7 +3,7 @@ module pocketbook
 go 1.17
 
 require (
-	github.com/Niraj-Fonseka/threedb v0.0.1
+	github.com/Niraj-Fonseka/threedb v0.0.2
 	github.com/slack-go/slack v0.11.0
 	go.uber.org/zap v1.21.0
 )

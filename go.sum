@@ -68,6 +68,8 @@ github.com/Niraj-Fonseka/threedb v0.0.0-20220702193609-3b78737259bd h1:Q4cMa2r9o
 github.com/Niraj-Fonseka/threedb v0.0.0-20220702193609-3b78737259bd/go.mod h1:RtBoDGwfIZlZIZpzHIDM7+Jd3pOQ+jIO+o3w6HRb22Q=
 github.com/Niraj-Fonseka/threedb v0.0.1 h1:VLgsepWlqlwoqVpGIAV4NCPydBlWts+akQ0wvNQn01M=
 github.com/Niraj-Fonseka/threedb v0.0.1/go.mod h1:RtBoDGwfIZlZIZpzHIDM7+Jd3pOQ+jIO+o3w6HRb22Q=
+github.com/Niraj-Fonseka/threedb v0.0.2 h1:sLOY4ULDYcF15sJ3PPvN73vGxZgUbgoxLG/9Fraxx44=
+github.com/Niraj-Fonseka/threedb v0.0.2/go.mod h1:RtBoDGwfIZlZIZpzHIDM7+Jd3pOQ+jIO+o3w6HRb22Q=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/aws/aws-sdk-go-v2 v1.16.6 h1:kzafGZYwkwVgLZ2zEX7P+vTwLli6uIMXF8aGjunN6UI=
