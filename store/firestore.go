@@ -6,6 +6,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
+	"google.golang.org/api/option"
 )
 
 type FirestoreService struct {
@@ -13,7 +14,15 @@ type FirestoreService struct {
 	ctx    context.Context
 }
 
-func NewFirestoreService(app *firebase.App, ctx context.Context) *FirestoreService {
+func NewFirestoreService() *FirestoreService {
+
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("./pocketbook-firestore.json")
+
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	client, err := app.Firestore(ctx)
 	if err != nil {

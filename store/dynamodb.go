@@ -68,6 +68,33 @@ func NewDynamoDB() *DB {
 	}
 }
 
+func NewDynamoDBClient() *dynamodb.Client {
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		panic(err)
+	}
+
+	var dc *dynamodb.Client
+
+	if os.Getenv("ENV") != "PROD" {
+		dc = dynamodb.NewFromConfig(cfg, func(o *dynamodb.Options) {
+			o.EndpointResolver = dynamodb.EndpointResolverFromURL("http://localhost:8000")
+		})
+
+		if !devTableExists(dc) {
+			prepDevEnv(dc)
+		}
+	} else {
+		dc = dynamodb.NewFromConfig(cfg)
+	}
+
+	if dc == nil {
+		log.Fatal("Unable to create a dynamodb client")
+	}
+
+	return dc
+}
+
 //------------------------------------- DEV ENV purposes only -------------------------------------
 //checks if a dev table exists in the local dynamodb
 func devTableExists(dc *dynamodb.Client) bool {

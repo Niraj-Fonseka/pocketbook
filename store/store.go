@@ -3,6 +3,8 @@ package store
 import (
 	"errors"
 	"fmt"
+
+	"cloud.google.com/go/firestore"
 )
 
 type StoreInterface interface {
@@ -13,27 +15,30 @@ type StoreInterface interface {
 }
 
 type Store struct {
+	firestore *FirestoreService
 }
 
 func NewStore(driver string) *Store {
 	fmt.Println("Creating new store : ", driver)
-	return &Store{}
+
+	return &Store{
+		firestore: NewFirestoreService(),
+	}
 }
 
-func (s *Store) Get(key string) (interface{}, error) {
-	var a interface{}
-
-	return a, errors.New("new error")
+func (s *Store) Get(key string) (*firestore.DocumentSnapshot, error) {
+	return s.firestore.GetUserRecord(key)
 }
 
 func (s *Store) Create(key string, value string) error {
-	return errors.New("new error")
+	return s.firestore.AddUserRecord(key, value)
 }
 
-func (s *Store) Delete(key string) error {
-	return errors.New("delete error")
+func (s *Store) Delete(key, value string) error {
+	return s.firestore.DeleteRecord(key, value)
 }
 
+//TODO
 func (s *Store) Update(key string) error {
 	return errors.New("update error")
 }
