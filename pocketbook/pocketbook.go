@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"pocketbook/store"
 	"strings"
+
+	"github.com/Niraj-Fonseka/threedb"
 
 	"github.com/slack-go/slack"
 	slacklib "github.com/slack-go/slack"
@@ -18,7 +19,7 @@ type SlackInterface interface {
 }
 
 type Slack struct {
-	store  store.StoreInterface
+	store  threedb.ThreeDBInterface
 	api    *slack.Client
 	client *socketmode.Client
 	logger *zap.SugaredLogger
@@ -31,7 +32,7 @@ type SlackResponse struct {
 }
 
 func NewPockebookClient(driver string, api *slack.Client, client *socketmode.Client, logger *zap.SugaredLogger) *Slack {
-	s := store.NewStore(driver)
+	s := threedb.NewThreeDB(driver)
 	return &Slack{
 		store:  s,
 		api:    api,
