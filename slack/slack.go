@@ -84,7 +84,6 @@ func (s *Slack) EventHandler(event *socketmode.Event) {
 
 func (s *Slack) getSlashCommandHandler(event *socketmode.Event) {
 
-	fmt.Println("getSlashCommandHandler.....")
 	eventData, ok := event.Data.(slack.SlashCommand)
 	if !ok {
 		fmt.Printf("Ignored %+v\n", event)
@@ -143,7 +142,6 @@ func (s *Slack) slashCommandHandler(evt *socketmode.Event, client *socketmode.Cl
 		return
 	}
 
-	fmt.Println("SlashCommand Handler ...")
 	if strings.TrimSpace(cmd.Text) == "delete" {
 		s.deleteSlashCommandHandler(evt)
 	} else if len(strings.TrimSpace(cmd.Text)) > 0 {

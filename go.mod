@@ -10,6 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.9.4
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.7
 	github.com/slack-go/slack v0.11.0
+	go.uber.org/zap v1.21.0
 	google.golang.org/api v0.85.0
 )
 
@@ -40,6 +41,8 @@ require (
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
+	go.uber.org/atomic v1.7.0 // indirect
+	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/net v0.0.0-20220617184016-355a448f1bc9 // indirect
 	golang.org/x/oauth2 v0.0.0-20220608161450-d0670ef3b1eb // indirect
 	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c // indirect
