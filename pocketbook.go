@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	pclient "pocketbook/slack"
+	"pocketbook/pocketbook"
 
 	"go.uber.org/zap"
 
@@ -20,6 +20,7 @@ func main() {
 	}
 
 	sugar := logger.Sugar()
+	defer logger.Sync()
 
 	appToken := os.Getenv("SLACK_APP_TOKEN")
 	if appToken == "" {
@@ -49,11 +50,11 @@ func main() {
 	)
 
 	socketmodeHandler := socketmode.NewSocketmodeHandler(client)
-	pocketbookConnector := pclient.NewPockebookClient("firestore", api, client)
+	pocketbookConnector := pocketbook.NewPockebookClient("firestore", api, client, sugar)
 	socketmodeHandler.Handle(socketmode.EventTypeConnecting, pocketbookConnector.MiddlewareConnecting)
 	socketmodeHandler.Handle(socketmode.EventTypeConnectionError, pocketbookConnector.MiddlewareConnectionError)
 	socketmodeHandler.Handle(socketmode.EventTypeConnected, pocketbookConnector.MiddlewareConnected)
-	socketmodeHandler.Handle(socketmode.EventTypeInteractive, pocketbookConnector.MiddlewareInteractiveHandler)
+	socketmodeHandler.Handle(socketmode.EventTypeInteractive, pocketbookConnector.MiddlewareInteractive)
 
 	socketmodeHandler.HandleSlashCommand("/pocketbook", pocketbookConnector.MiddlewareSlashCommand)
 
