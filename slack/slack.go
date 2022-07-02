@@ -32,7 +32,9 @@ type SlackResponse struct {
 func NewPockebookClient(driver string, api *slack.Client, client *socketmode.Client) *Slack {
 	s := store.NewStore("firestore")
 	return &Slack{
-		Store: s,
+		Store:  s,
+		API:    api,
+		Client: client,
 	}
 }
 
@@ -54,6 +56,7 @@ func (s *Slack) MiddlewareConnected(evt *socketmode.Event, client *socketmode.Cl
 
 func (s *Slack) MiddlewareSlashCommand(evt *socketmode.Event, client *socketmode.Client) {
 	fmt.Println("Slash command executing")
+	s.slashCommandHandler(evt, client)
 }
 
 func (s *Slack) MiddlewareInteractive(evt *socketmode.Event, client *socketmode.Client) {
@@ -80,6 +83,8 @@ func (s *Slack) EventHandler(event *socketmode.Event) {
 }
 
 func (s *Slack) getSlashCommandHandler(event *socketmode.Event) {
+
+	fmt.Println("getSlashCommandHandler.....")
 	eventData, ok := event.Data.(slack.SlashCommand)
 	if !ok {
 		fmt.Printf("Ignored %+v\n", event)
@@ -138,11 +143,10 @@ func (s *Slack) slashCommandHandler(evt *socketmode.Event, client *socketmode.Cl
 		return
 	}
 
+	fmt.Println("SlashCommand Handler ...")
 	if strings.TrimSpace(cmd.Text) == "delete" {
 		s.deleteSlashCommandHandler(evt)
-	}
-
-	if len(strings.TrimSpace(cmd.Text)) > 0 {
+	} else if len(strings.TrimSpace(cmd.Text)) > 0 {
 		s.createSlashCommandHandler(evt)
 	} else {
 		s.getSlashCommandHandler(evt)
