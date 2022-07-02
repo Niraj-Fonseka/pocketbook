@@ -3,6 +3,10 @@ package store
 import "fmt"
 
 type StoreInterface interface {
+	Get()
+	Create()
+	Delete()
+	Update()
 }
 
 type Store struct {
