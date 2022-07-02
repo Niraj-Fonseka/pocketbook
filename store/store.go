@@ -8,9 +8,9 @@ import (
 )
 
 type StoreInterface interface {
-	Get(key string) (interface{}, error)
+	Get(key string) (*firestore.DocumentSnapshot, error)
 	Create(key string, value string) error
-	Delete(key string) error
+	Delete(key string, value string) error
 	Update(key string) error
 }
 

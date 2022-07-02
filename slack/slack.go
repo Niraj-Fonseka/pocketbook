@@ -29,8 +29,8 @@ type SlackResponse struct {
 	DeleteOriginal bool   `json:"delete_original"`
 }
 
-func NewSlack(driver string, api *slack.Client, client *socketmode.Client) *Slack {
-	s := store.NewStore("dynamodb")
+func NewPockebookClient(driver string, api *slack.Client, client *socketmode.Client) *Slack {
+	s := store.NewStore("firestore")
 	return &Slack{
 		Store: s,
 	}
@@ -38,14 +38,26 @@ func NewSlack(driver string, api *slack.Client, client *socketmode.Client) *Slac
 
 /*
 	- middleware functions for hanlding slash commands
-
 */
-func (s *Slack) middlewareSlashCommand(evt *socketmode.Event, client *socketmode.Client) {
 
+func (s *Slack) MiddlewareConnecting(evt *socketmode.Event, client *socketmode.Client) {
+	fmt.Println("Connecting to Slack with Socket Mode...")
 }
 
-func (s *Slack) middlewareInteractive(evt *socketmode.Event, client *socketmode.Client) {
+func (s *Slack) MiddlewareConnectionError(evt *socketmode.Event, client *socketmode.Client) {
+	fmt.Println("Connection failed. Retrying later...")
+}
 
+func (s *Slack) MiddlewareConnected(evt *socketmode.Event, client *socketmode.Client) {
+	fmt.Println("Connected to Slack with Socket Mode.")
+}
+
+func (s *Slack) MiddlewareSlashCommand(evt *socketmode.Event, client *socketmode.Client) {
+	fmt.Println("Slash command executing")
+}
+
+func (s *Slack) MiddlewareInteractive(evt *socketmode.Event, client *socketmode.Client) {
+	fmt.Println("Middleware Interactive")
 }
 
 func (s *Slack) MiddlewareInteractiveHandler(evt *socketmode.Event, client *socketmode.Client) {
@@ -105,7 +117,7 @@ func (s *Slack) createSlashCommandHandler(event *socketmode.Event) {
 func (s *Slack) deleteSlashCommandHandler(event *socketmode.Event) {
 	eventData, ok := event.Data.(slack.SlashCommand)
 	if !ok {
-		fmt.Printf("Ignored %+v\n", evt)
+		fmt.Printf("Ignored %+v\n", eventData)
 		return
 	}
 
@@ -206,7 +218,7 @@ func (s *Slack) sendButtonClickHandler(event slack.InteractionCallback, payload 
 
 func (s *Slack) deleteButtonClickHandler(event slack.InteractionCallback, payload string, responseURL string) {
 
-	err := s.Store.Delete(fmt.Sprintf("%s-%s", event.User.ID, event.Team.ID), dataToSend)
+	err := s.Store.Delete(fmt.Sprintf("%s-%s", event.User.ID, event.Team.ID), payload)
 	if err != nil {
 		log.Println(err)
 	}
