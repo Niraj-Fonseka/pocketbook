@@ -64,10 +64,6 @@ firebase.google.com/go v3.13.0+incompatible h1:3TdYC3DDi6aHn20qoRkxwGqNgdjtblwVA
 firebase.google.com/go v3.13.0+incompatible/go.mod h1:xlah6XbEyW6tbfSklcfe5FHJIwjt8toICdV5Wh9ptHs=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/Niraj-Fonseka/threedb v0.0.0-20220702193609-3b78737259bd h1:Q4cMa2r9oVNzP3zyvPBOjerYUoi4ZPxV5U9JSj/Mxlk=
-github.com/Niraj-Fonseka/threedb v0.0.0-20220702193609-3b78737259bd/go.mod h1:RtBoDGwfIZlZIZpzHIDM7+Jd3pOQ+jIO+o3w6HRb22Q=
-github.com/Niraj-Fonseka/threedb v0.0.1 h1:VLgsepWlqlwoqVpGIAV4NCPydBlWts+akQ0wvNQn01M=
-github.com/Niraj-Fonseka/threedb v0.0.1/go.mod h1:RtBoDGwfIZlZIZpzHIDM7+Jd3pOQ+jIO+o3w6HRb22Q=
 github.com/Niraj-Fonseka/threedb v0.0.2 h1:sLOY4ULDYcF15sJ3PPvN73vGxZgUbgoxLG/9Fraxx44=
 github.com/Niraj-Fonseka/threedb v0.0.2/go.mod h1:RtBoDGwfIZlZIZpzHIDM7+Jd3pOQ+jIO+o3w6HRb22Q=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
