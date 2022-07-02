@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"pocketbook/pocketbook"
+	"github.com/Niraj-Fonseka/pocketbook/pocketbook"
 
 	"go.uber.org/zap"
 

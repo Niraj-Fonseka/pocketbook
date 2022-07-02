@@ -1,4 +1,4 @@
-module pocketbook
+module github.com/Niraj-Fonseka/pocketbook
 
 go 1.17
 
